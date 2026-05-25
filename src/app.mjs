@@ -12,7 +12,10 @@ import {
   normalizeNodes,
   normalizeRealtimeNodes,
   summarizeNodes,
+  unwrapApiEnvelope,
 } from "./theme-data.mjs";
+
+const REALTIME_REFRESH_INTERVAL_MS = 5_000;
 
 const mockNodes = [
   {
@@ -71,6 +74,7 @@ const state = {
   viewMode: "grid",
   publicInfo: null,
   socket: null,
+  realtimeTimer: null,
   lastRefresh: null,
   usingMock: true,
 };
@@ -309,8 +313,9 @@ async function fetchJson(url) {
 }
 
 function applyPublicInfo(info) {
-  const siteName = info?.sitename || info?.site_name || info?.name;
-  const description = info?.description || info?.desc;
+  const publicInfo = unwrapApiEnvelope(info);
+  const siteName = publicInfo?.sitename || publicInfo?.site_name || publicInfo?.name || publicInfo?.title;
+  const description = publicInfo?.description || publicInfo?.desc;
 
   if (siteName) {
     elements.siteName.textContent = siteName;
@@ -353,12 +358,26 @@ function connectRealtime() {
     return;
   }
 
+  if (state.socket) {
+    state.socket.close();
+  }
+  clearInterval(state.realtimeTimer);
+  state.realtimeTimer = null;
+
   const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
   const socket = new WebSocket(`${protocol}//${window.location.host}/api/clients`);
   state.socket = socket;
 
+  const requestRealtimeSnapshot = () => {
+    if (socket.readyState === WebSocket.OPEN) {
+      socket.send("get");
+    }
+  };
+
   socket.addEventListener("open", () => {
-    socket.send("get");
+    requestRealtimeSnapshot();
+    clearInterval(state.realtimeTimer);
+    state.realtimeTimer = setInterval(requestRealtimeSnapshot, REALTIME_REFRESH_INTERVAL_MS);
   });
 
   socket.addEventListener("message", (event) => {
@@ -375,7 +394,11 @@ function connectRealtime() {
   });
 
   socket.addEventListener("close", () => {
-    state.socket = null;
+    if (state.socket === socket) {
+      clearInterval(state.realtimeTimer);
+      state.realtimeTimer = null;
+      state.socket = null;
+    }
   });
 }
 
@@ -388,6 +411,13 @@ function bindEvents() {
 
   window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
     applyTheme(getStoredTheme(localStorage));
+  });
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") {
+      refreshNodes();
+      connectRealtime();
+    }
   });
 }
 

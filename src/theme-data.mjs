@@ -103,6 +103,10 @@ function hasApiEnvelope(payload) {
   );
 }
 
+export function unwrapApiEnvelope(payload) {
+  return hasApiEnvelope(payload) ? payload.data : payload;
+}
+
 function isObjectMap(value) {
   return Boolean(value && typeof value === "object" && !Array.isArray(value));
 }
@@ -172,7 +176,7 @@ export function normalizeNode(rawNode = {}, fallbackId = "") {
 
 export function normalizeNodes(rawNodes = []) {
   if (hasApiEnvelope(rawNodes)) {
-    return normalizeNodes(rawNodes.data);
+    return normalizeNodes(unwrapApiEnvelope(rawNodes));
   }
 
   if (Array.isArray(rawNodes)) {
@@ -201,7 +205,7 @@ export function normalizeNodes(rawNodes = []) {
 }
 
 export function normalizeRealtimeNodes(payload = {}) {
-  const unwrappedPayload = hasApiEnvelope(payload) ? payload.data : payload;
+  const unwrappedPayload = unwrapApiEnvelope(payload);
   const onlineSet = new Set(unwrappedPayload.online || []);
   const data = unwrappedPayload.data || unwrappedPayload;
 

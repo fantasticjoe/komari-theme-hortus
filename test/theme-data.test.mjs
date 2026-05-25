@@ -10,6 +10,7 @@ import {
   mergeNodeLists,
   normalizeNode,
   normalizeNodes,
+  unwrapApiEnvelope,
 } from "../src/theme-data.mjs";
 import { readFile } from "node:fs/promises";
 
@@ -77,6 +78,22 @@ test("unwraps Komari API envelopes before normalizing node arrays", () => {
   assert.equal(nodes[0].id, "real-vps");
   assert.equal(nodes[0].name, "Tokyo VPS");
   assert.equal(nodes[0].region, "Tokyo");
+});
+
+test("unwraps public Komari info envelopes for site metadata", () => {
+  assert.deepEqual(
+    unwrapApiEnvelope({
+      status: "success",
+      data: {
+        sitename: "FantasticJoe Monitor",
+        description: "Live node status",
+      },
+    }),
+    {
+      sitename: "FantasticJoe Monitor",
+      description: "Live node status",
+    },
+  );
 });
 
 test("unwraps realtime envelopes without treating status or message as nodes", () => {
@@ -199,4 +216,25 @@ test("uses the blog banner image API behind a readability mask", async () => {
   assert.match(css, /\.app-shell[\s\S]*z-index:\s*1/);
   assert.match(css, /backdrop-filter:\s*blur/);
   assert.match(app, /socket\.send\("get"\)/);
+});
+
+test("keeps the dashboard chrome compact so node cards are primary", async () => {
+  const css = await readFile(new URL("../src/styles.css", import.meta.url), "utf8");
+
+  assert.match(css, /grid-template-columns:\s*minmax\(12rem,\s*0\.7fr\)\s*minmax\(30rem,\s*1\.3fr\)/);
+  assert.match(css, /font-size:\s*clamp\(1\.55rem,\s*2\.6vw,\s*2\.2rem\)/);
+  assert.match(css, /\.summary-card\s*\{[\s\S]*?min-height:\s*3\.35rem/);
+  assert.match(css, /\.nodes-grid\s*\{[\s\S]*?padding-top:\s*0\.2rem/);
+  assert.match(css, /@media \(max-width:\s*720px\)[\s\S]*?\.hero-copy h1\s*\{[\s\S]*?font-size:\s*1\.75rem/);
+});
+
+test("requests realtime Komari snapshots continuously over websocket", async () => {
+  const app = await readFile(new URL("../src/app.mjs", import.meta.url), "utf8");
+
+  assert.match(app, /REALTIME_REFRESH_INTERVAL_MS\s*=\s*5_000/);
+  assert.match(app, /setInterval\(requestRealtimeSnapshot,\s*REALTIME_REFRESH_INTERVAL_MS\)/);
+  assert.match(app, /clearInterval\(state\.realtimeTimer\)/);
+  assert.match(app, /if \(state\.socket === socket\)/);
+  assert.match(app, /document\.addEventListener\("visibilitychange"/);
+  assert.match(app, /unwrapApiEnvelope\(info\)/);
 });
