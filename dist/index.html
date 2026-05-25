@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="description" content="Server Monitor" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#F8F5EC" />
+    <title>Komari Monitor</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&family=Noto+Serif+SC:wght@500;600;700&family=Source+Sans+3:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+    <script type="module" src="./app.mjs"></script>
+  </head>
+  <body>
+    <div class="banner-background" data-banner-background aria-hidden="true"></div>
+    <div id="app" class="app-shell" data-view="grid">
+      <header class="site-header" data-header>
+        <a class="brand-lockup" href="/" aria-label="Komari Monitor home">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 32 32" role="img">
+              <path d="M16 3.8c4.8 0 9 2.74 11.02 6.74-2.18-.5-4.52-.17-6.62.96-2.06 1.1-3.68 2.93-4.4 5.12-.72-2.2-2.34-4.02-4.4-5.12-2.1-1.13-4.44-1.46-6.62-.96C7 6.54 11.2 3.8 16 3.8Z" />
+              <path d="M4.84 13.72c1.62-.74 3.62-.7 5.45.28 2.25 1.2 3.6 3.5 3.8 6.16-2.4.26-4.9-.44-6.76-2.03a8.3 8.3 0 0 1-2.49-4.41Z" />
+              <path d="M27.16 13.72c-1.62-.74-3.62-.7-5.45.28-2.25 1.2-3.6 3.5-3.8 6.16 2.4.26 4.9-.44 6.76-2.03a8.3 8.3 0 0 0 2.49-4.41Z" />
+              <path d="M16 17.42c1.54 2.48 1.58 5.44 0 8.78-1.58-3.34-1.54-6.3 0-8.78Z" />
+            </svg>
+          </span>
+          <span>
+            <span class="brand-title" data-site-name>Komari</span>
+            <span class="brand-subtitle">Hortus Monitor</span>
+          </span>
+        </a>
+
+        <nav class="top-actions" aria-label="Dashboard controls">
+          <button class="icon-button" type="button" data-refresh-button aria-label="Refresh nodes" title="Refresh">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M20 11a8.1 8.1 0 0 0-14.6-4.8L4 8" />
+              <path d="M4 4v4h4" />
+              <path d="M4 13a8.1 8.1 0 0 0 14.6 4.8L20 16" />
+              <path d="M20 20v-4h-4" />
+            </svg>
+          </button>
+          <button class="icon-button" type="button" data-theme-toggle aria-label="Toggle appearance" title="Appearance">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 3v2" />
+              <path d="M12 19v2" />
+              <path d="m4.22 4.22 1.42 1.42" />
+              <path d="m18.36 18.36 1.42 1.42" />
+              <path d="M3 12h2" />
+              <path d="M19 12h2" />
+              <path d="m4.22 19.78 1.42-1.42" />
+              <path d="m18.36 5.64 1.42-1.42" />
+              <circle cx="12" cy="12" r="4" />
+            </svg>
+          </button>
+          <a class="admin-link" href="/admin">Admin</a>
+        </nav>
+      </header>
+
+      <main class="page-main">
+        <section class="hero-section" aria-labelledby="dashboard-title">
+          <div class="hero-copy">
+            <p class="eyebrow">Komari Monitor</p>
+            <h1 id="dashboard-title">A quiet garden for your nodes.</h1>
+            <p class="hero-description" data-site-description>
+              Watch uptime, system load, storage, and traffic in one calm surface.
+            </p>
+          </div>
+
+          <div class="summary-panel" aria-label="Monitor summary">
+            <div class="summary-card summary-card-wide">
+              <span class="summary-label">Online</span>
+              <strong data-summary-online>0 / 0</strong>
+              <span data-summary-offline>0 offline</span>
+            </div>
+            <div class="summary-card">
+              <span class="summary-label">CPU</span>
+              <strong data-summary-cpu>0%</strong>
+              <span>avg load</span>
+            </div>
+            <div class="summary-card">
+              <span class="summary-label">Memory</span>
+              <strong data-summary-memory>0%</strong>
+              <span>avg used</span>
+            </div>
+            <div class="summary-card">
+              <span class="summary-label">Traffic</span>
+              <strong data-summary-traffic>0 B/s</strong>
+              <span>up / down</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="toolbar" aria-label="Node filters">
+          <div class="toolbar-group" data-group-filter role="tablist" aria-label="Groups"></div>
+          <div class="view-toggle" role="group" aria-label="View mode">
+            <button type="button" data-view-button="grid" aria-label="Grid view">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="4" y="4" width="6" height="6" rx="1" />
+                <rect x="14" y="4" width="6" height="6" rx="1" />
+                <rect x="4" y="14" width="6" height="6" rx="1" />
+                <rect x="14" y="14" width="6" height="6" rx="1" />
+              </svg>
+            </button>
+            <button type="button" data-view-button="table" aria-label="Table view">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 6h16" />
+                <path d="M4 12h16" />
+                <path d="M4 18h16" />
+              </svg>
+            </button>
+          </div>
+        </section>
+
+        <section class="status-line" aria-live="polite">
+          <span data-connection-state>Connecting to Komari...</span>
+          <span data-last-refresh></span>
+        </section>
+
+        <section class="nodes-grid" data-node-grid aria-label="Node cards"></section>
+        <section class="nodes-table-wrap" data-node-table-wrap aria-label="Node table"></section>
+
+        <section class="empty-state" data-empty-state hidden>
+          <p>No nodes in this group.</p>
+          <span>Try another group or refresh the dashboard.</span>
+        </section>
+      </main>
+
+      <footer class="site-footer">
+        <span>Powered by Komari Monitor.</span>
+        <a href="https://github.com/fantasticjoe" target="_blank" rel="noreferrer">Hortus theme by FantasticJoe</a>
+      </footer>
+    </div>
+  </body>
+</html>
