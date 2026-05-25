@@ -218,11 +218,37 @@ export function normalizeRealtimeNodes(payload = {}) {
 
 export function mergeNodeLists(baseNodes = [], realtimeNodes = []) {
   const realtimeById = new Map(realtimeNodes.map((node) => [node.id, node]));
+  const mergedIds = new Set();
 
-  return baseNodes.map((baseNode) => {
+  const mergedNodes = baseNodes.map((baseNode) => {
     const liveNode = realtimeById.get(baseNode.id);
-    return liveNode ? { ...baseNode, ...liveNode, raw: { ...baseNode.raw, ...liveNode.raw } } : baseNode;
+    if (!liveNode) {
+      return baseNode;
+    }
+
+    mergedIds.add(baseNode.id);
+
+    return {
+      ...baseNode,
+      online: liveNode.online,
+      cpu: liveNode.cpu,
+      memory: liveNode.memory,
+      disk: liveNode.disk,
+      swap: liveNode.swap,
+      network: liveNode.network,
+      load: liveNode.load,
+      uptime: liveNode.uptime || baseNode.uptime,
+      process: liveNode.process || baseNode.process,
+      connections: liveNode.connections,
+      updatedAt: liveNode.updatedAt || baseNode.updatedAt,
+      raw: { ...baseNode.raw, ...liveNode.raw },
+    };
   });
+
+  return [
+    ...mergedNodes,
+    ...realtimeNodes.filter((node) => !mergedIds.has(node.id) && !baseNodes.some((baseNode) => baseNode.id === node.id)),
+  ];
 }
 
 export function formatBytes(value) {

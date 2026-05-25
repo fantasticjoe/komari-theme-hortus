@@ -7,6 +7,7 @@ import {
   formatBytesPerSecond,
   formatRelativeTime,
   getStoredTheme,
+  mergeNodeLists,
   normalizeNode,
   normalizeNodes,
 } from "../src/theme-data.mjs";
@@ -96,6 +97,55 @@ test("unwraps realtime envelopes without treating status or message as nodes", (
   assert.equal(nodes[0].cpu, 41);
 });
 
+test("merges realtime metrics without replacing node names with UUIDs", () => {
+  const merged = mergeNodeLists(
+    normalizeNodes([
+      {
+        uuid: "node-a",
+        name: "RackNerd San Jose",
+        region: "US",
+        os: "Ubuntu 24.04.4 LTS",
+      },
+    ]),
+    normalizeNodes({
+      data: {
+        online: ["node-a"],
+        data: {
+          "node-a": {
+            cpu: 7,
+            disk: { used: 58, total: 100 },
+            network: { up: 66, down: 66 },
+          },
+        },
+      },
+    }),
+  );
+
+  assert.equal(merged[0].id, "node-a");
+  assert.equal(merged[0].name, "RackNerd San Jose");
+  assert.equal(merged[0].region, "US");
+  assert.equal(merged[0].os, "Ubuntu 24.04.4 LTS");
+  assert.equal(merged[0].cpu, 7);
+  assert.equal(merged[0].disk.percent, 58);
+});
+
+test("adds realtime-only nodes when no base node exists", () => {
+  const merged = mergeNodeLists(
+    [],
+    normalizeNodes({
+      data: {
+        online: ["node-a"],
+        data: {
+          "node-a": { cpu: 7 },
+        },
+      },
+    }),
+  );
+
+  assert.equal(merged.length, 1);
+  assert.equal(merged[0].id, "node-a");
+});
+
 test("does not turn non-node API metadata into cards", () => {
   const nodes = normalizeNodes({
     status: "success",
@@ -144,6 +194,7 @@ test("uses the blog banner image API behind a readability mask", async () => {
   assert.match(html, /data-banner-background/);
   assert.match(css, /https:\/\/api\.dujin\.org\/bing\/1920\.php/);
   assert.match(css, /\.banner-background::after/);
+  assert.match(css, /rgba\(248, 245, 236, 0\.72\)/);
   assert.match(css, /z-index:\s*0/);
   assert.match(css, /\.app-shell[\s\S]*z-index:\s*1/);
   assert.match(css, /backdrop-filter:\s*blur/);
